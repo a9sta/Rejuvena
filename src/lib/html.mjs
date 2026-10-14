@@ -188,7 +188,7 @@ function bottomBar(cfg) {
 export function sect(id, label, h2, inner, sub, n) {
   return `<section class="sect" id="${id}" aria-labelledby="${id}-h">
   <header class="sect-h">
-    <span class="sect-no" aria-hidden="true">${esc(label)}${n ? ` ${n}` : ''}</span>
+    <span class="sect-no" aria-hidden="true" data-eyebrow="${esc(label)}${n ? ` ${n}` : ''}"></span>
     <h2 id="${id}-h">${h2}</h2>
     ${sub ? `<p class="sect-sb">${sub}</p>` : ''}
   </header>

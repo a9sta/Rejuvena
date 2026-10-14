@@ -3,13 +3,15 @@ import { esc, hash, km2, won, josa } from '../lib/util.mjs';
 import { title, desc, clampDesc } from '../lib/seo.mjs';
 import * as S from '../lib/schema.mjs';
 import {
-  courseGrid, stepList, factTable, faqBlock, noticeBlock, longtail,
+  courseGrid, stepList, stepSet, factTable, faqBlock, noticeBlock, longtail,
   bridgeKin, spotIndex, ruralList, dongNameList, guIndex, nearList, shoutBand,
+  topicLinks, courseTopic,
 } from '../lib/blocks.mjs';
 import {
   SPOT_LEAD_A, SPOT_LEAD_B, SPOT_LEAD_C,
   GU_LEAD, SIDO_LEAD_MAIN, SIDO_LEAD_SUB, SEC,
   degWord, widthWord, eccWord, cutWord, crossWord,
+  ANCHOR, COURSE_ANCHOR, NEAR_ANCHOR, DOC_LINKS,
 } from '../content/copy.mjs';
 
 const at = (h, arr, slot = 0) => arr[parseInt(h.substr((slot * 3) % 29, 3), 16) % arr.length];
@@ -62,33 +64,45 @@ export function spotPage(ctx, sd, g, s) {
       ['세 다리까지', `${s.step3}칸 — ${esc(widthWord(s.step2))}`],
       ['이웃이 어디에', `${g.name} 안 ${s.inDeg}칸 · 구 밖 ${s.outDeg}칸`],
       ['구에서 가장 먼 칸까지', `${s.ecc}다리`],
-      ['길목인가', s.cut ? '그렇습니다 — 이 칸이 빠지면 구가 갈라집니다' : '아닙니다 — 돌아가는 길이 남습니다'],
+      ['길목인가', s.cut ? `그렇습니다 — ${esc(s.name)}이 빠지면 ${esc(g.name)}가 갈라집니다` : `아닙니다 — ${esc(g.name)} 안에서 ${s.step1}갈래로 돌아갈 수 있습니다`],
       ['땅', `${km2(s.area)} — ${esc(crossWord(s.area))}`],
-      ['여는 시각', `${esc(cfg.hours)} / 셈 ${esc(cfg.pay)} / 닿기까지 ${esc(cfg.arrive)}`],
     ]),
     esc(at(h, SEC.factSub, 7)), '01');
 
   const { html: faqHtml, qa } = faqBlock(seed, c, 5, '07');
 
-  const pool = [];
+  const far = [];
   for (const r of regions) {
     if (r.slug === sd.slug) continue;
-    if (r.main) for (const x of r.gu) for (const y of x.spots) pool.push({ label: `${x.name} ${y.name}`, href: `/${r.slug}/${x.slug}/${y.slug}/` });
-    else for (const x of r.gu) pool.push({ label: `${r.name} ${x.name}`, href: `/${r.slug}/${x.slug}/` });
+    if (r.main) for (const x of r.gu) for (const y of x.spots) far.push({ label: `${x.name} ${y.name}`, href: `/${r.slug}/${x.slug}/${y.slug}/` });
+    else for (const x of r.gu) far.push({ label: `${r.name} ${x.name}`, href: `/${r.slug}/${x.slug}/` });
   }
+  const sameSido = [];
+  for (const x of sd.gu) {
+    if (x.slug === g.slug) continue;
+    for (const y of x.spots) sameSido.push({ label: `${x.name} ${y.name}`, href: `/${sd.slug}/${x.slug}/${y.slug}/` });
+  }
+  const steps = stepSet(seed);
+  const topics = topicLinks([
+    { label: '코스 이름으로', items: courseTopic(sd, courses), anchor: COURSE_ANCHOR },
+    { label: `${sd.name} 안 다른 칸`, items: sameSido, pick: 12, anchor: ANCHOR },
+    { label: '한 다리 밖 시군구', items: g.near.map((t) => ({ label: t.gu, href: `/${t.sidoSlug}/${t.slug}/` })), anchor: NEAR_ANCHOR },
+    { label: '다른 시도', items: far, pick: 14, anchor: ANCHOR },
+    { label: '먼저 읽을 것', items: DOC_LINKS },
+  ], seed, '09', esc(at(h, SEC.topicHead, 8)), esc(at(h, SEC.topicSub, 3)));
 
   const body = [
     open,
     facts,
     shoutBand(cfg, `${g.name} ${s.name}`, seed),
-    courseGrid(courses, seed, s.name, '02'),
+    courseGrid(courses, seed, s.name, '02', { full: false }),
     bridgeKin(sd, g, s, seed, '03'),
     spotIndex(sd, g, seed, s.slug, '04'),
     stepList(seed, '05'),
     guIndex(sd, seed, g.slug, '06'),
     faqHtml,
     noticeBlock(seed, '08'),
-    longtail(pool, seed, 24, 'elsewhere', esc(at(h, SEC.crossHead, 8)), null, '09'),
+    topics,
   ].join('\n');
 
   return {
@@ -119,6 +133,7 @@ export function spotPage(ctx, sd, g, s) {
           courses,
         }),
         S.faqPage(url, qa),
+        S.howTo(url, `${g.name} ${s.name}에서 부르는 다섯 걸음`, steps, cfg),
       ],
     }),
   };
@@ -182,11 +197,18 @@ export function guPage(ctx, sd, g) {
 
   const { html: faqHtml, qa } = faqBlock(seed, c, 5, '06');
 
-  const pool = [];
+  const far = [];
   for (const r of regions) for (const x of r.gu) {
     if (r.slug === sd.slug && x.slug === g.slug) continue;
-    pool.push({ label: `${r.name} ${x.name}`, href: `/${r.slug}/${x.slug}/` });
+    far.push({ label: `${r.name} ${x.name}`, href: `/${r.slug}/${x.slug}/` });
   }
+  const steps = stepSet(seed);
+  const topics = topicLinks([
+    { label: '코스 이름으로', items: courseTopic(sd, courses), anchor: COURSE_ANCHOR },
+    { label: '한 다리 밖 시군구', items: g.near.map((t) => ({ label: t.gu, href: `/${t.sidoSlug}/${t.slug}/` })), anchor: NEAR_ANCHOR },
+    { label: '다른 시군구', items: far, pick: 18, anchor: ANCHOR },
+    { label: '먼저 읽을 것', items: DOC_LINKS },
+  ], seed, '10', esc(at(h, SEC.topicHead, 8)), esc(at(h, SEC.topicSub, 3)));
 
   const body = [
     open,
@@ -194,13 +216,13 @@ export function guPage(ctx, sd, g) {
     shoutBand(cfg, `${sd.name} ${g.name}`, seed),
     mode === 'spot' ? spotIndex(sd, g, seed, null, '02') : mode === 'list' ? dongNameList(g, seed, '02') : '',
     ruralList(g, seed, '03'),
-    courseGrid(courses, seed, g.name, '04'),
+    courseGrid(courses, seed, g.name, '04', { full: false }),
     nearList(sd, g, seed, '05'),
     faqHtml,
     stepList(seed, '07'),
     noticeBlock(seed, '08'),
     guIndex(sd, seed, g.slug, '09'),
-    longtail(pool, seed, 20, 'districts', '옆 시군구에서 받는 자리', null, '10'),
+    topics,
   ].join('\n');
 
   return {
@@ -233,6 +255,7 @@ export function guPage(ctx, sd, g) {
           ? S.itemList(`${url}#spotlist`, `${g.name} 동`, g.spots.map((s) => ({ name: s.name, url: `${siteUrl}/${sd.slug}/${g.slug}/${s.slug}/` })))
           : null,
         S.faqPage(url, qa),
+        S.howTo(url, `${sd.name} ${g.name}에서 부르는 다섯 걸음`, steps, cfg),
       ].filter(Boolean),
     }),
   };
@@ -294,11 +317,20 @@ export function sidoPage(ctx, sd) {
       '행정동이 많으면 같은 땅을 더 잘게 갈라 이름 붙인 것입니다.', '03');
   }
 
-  const pool = [];
+  const far = [];
   for (const r of regions) {
     if (r.slug === sd.slug) continue;
-    for (const x of r.gu) pool.push({ label: `${r.name} ${x.name}`, href: `/${r.slug}/${x.slug}/` });
+    for (const x of r.gu) far.push({ label: `${r.name} ${x.name}`, href: `/${r.slug}/${x.slug}/` });
   }
+  const deep = [];
+  for (const g of sd.gu) for (const x of g.spots) deep.push({ label: `${g.name} ${x.name}`, href: `/${sd.slug}/${g.slug}/${x.slug}/` });
+  const steps = stepSet(seed);
+  const topics = topicLinks([
+    { label: '코스 이름으로', items: courseTopic(sd, courses), anchor: COURSE_ANCHOR },
+    ...(deep.length ? [{ label: `${sd.name} 동으로 바로`, items: deep, pick: 16, anchor: ANCHOR }] : []),
+    { label: '다른 시도', items: far, pick: 16, anchor: ANCHOR },
+    { label: '먼저 읽을 것', items: DOC_LINKS },
+  ], seed, '08', esc(at(h, SEC.topicHead, 8)), esc(at(h, SEC.topicSub, 3)));
 
   const body = [
     open,
@@ -310,7 +342,7 @@ export function sidoPage(ctx, sd) {
     courseGrid(courses, seed, sd.name, '05'),
     faqHtml,
     stepList(seed, '07'),
-    longtail(pool, seed, 20, 'provinces', '다른 시도에서 받는 자리', null, '08'),
+    topics,
   ].join('\n');
 
   return {
@@ -339,6 +371,7 @@ export function sidoPage(ctx, sd) {
         }),
         S.itemList(`${url}#gulist`, `${sd.name} 시군구`, sd.gu.map((g) => ({ name: g.name, url: `${siteUrl}/${sd.slug}/${g.slug}/` }))),
         S.faqPage(url, qa),
+        S.howTo(url, `${sd.name}에서 부르는 다섯 걸음`, steps, cfg),
       ],
     }),
   };

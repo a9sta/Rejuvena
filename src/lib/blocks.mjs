@@ -1,6 +1,6 @@
 import { esc, hash, shuffle, km2, won, josa } from './util.mjs';
 import { sect, ringBtn } from './html.mjs';
-import { ANCHOR, FAQ_POOL, STEP_SETS, NOTICE, SEC } from '../content/copy.mjs';
+import { ANCHOR, FAQ_POOL, STEP_SETS, NOTICE, SEC, COURSE_ANCHOR, NEAR_ANCHOR, DOC_LINKS } from '../content/copy.mjs';
 
 const at = (h, arr, slot = 0) => arr[parseInt(h.substr((slot * 3) % 29, 3), 16) % arr.length];
 
@@ -21,12 +21,15 @@ export function shoutBand(cfg, place, seedKey) {
 </section>`;
 }
 
-/* ── 코스 ─────────────────────────────────────────────────────── */
-export function courseGrid(courses, seedKey, place, num = '01') {
+/* ── 코스 ───────────────────────────────────────────────────────
+   ★★쪽마다 일곱 가지를 통째로 되풀이하면 그 표가 본문에서 가장 큰 덩어리가 되고
+     동 쪽끼리 겹침이 20%대로 올라간다. 동·시군구 쪽에서는 **시드로 고른 셋만**
+     보이고 나머지는 코스 쪽으로 보낸다. 허브·시도 쪽에서만 전체를 편다. */
+export function courseGrid(courses, seedKey, place, num = '01', { full = true } = {}) {
   const h = hash(seedKey, 'cg');
-  // 설명을 전부 달면 어느 쪽이든 같은 문장이 깔린다. 둘만 시드로 골라 단다.
-  const withText = new Set(shuffle(courses.map((c) => c.slug), h).slice(0, 2));
-  const list = courses.map((c) => {
+  const show = full ? courses : shuffle(courses.slice(), h).slice(0, 3);
+  const withText = new Set(shuffle(show.map((c) => c.slug), h).slice(0, full ? 2 : 1));
+  const list = show.map((c) => {
     const line = at(hash(seedKey, c.slug), c.lines);
     return `<li>
     <a href="/course/${c.slug}/">
@@ -37,13 +40,25 @@ export function courseGrid(courses, seedKey, place, num = '01') {
     ${withText.has(c.slug) ? `<p class="d-t">${esc(line)}</p>` : ''}
   </li>`;
   }).join('\n');
-  return sect('course', 'courses', `${esc(place)}까지 들고 가는 일곱 가지`,
+  const short = [
+    `${esc(place)}에도 일곱 가지를 다 들고 갑니다. 여기 없는 넷은 <a href="/course/">코스 쪽</a>에, 숫자는 <a href="/price/">값표</a>에 있습니다.`,
+    `${esc(place)} 쪽 통화에서 제일 자주 짚히는 셋입니다. <a href="/course/">일곱 가지를 한자리에</a> 모았고 <a href="/price/">값은 따로</a> 두었습니다.`,
+    `${esc(place)}이라고 고를 폭이 줄지 않습니다. <a href="/course/">나머지 넷</a>과 <a href="/price/">전체 값</a>을 함께 두었습니다.`,
+    `세기나 길이가 안 맞으면 <a href="/course/">일곱 가지</a>를 펼쳐 보십시오. ${esc(place)} 값은 <a href="/price/">이 표</a>와 같습니다.`,
+  ];
+  const tail = full
+    ? `${esc(at(h, SEC.courseTail, 2))} ${at(h, SEC.courseLink, 5)}`
+    : at(h, short, 4);
+  return sect('course', 'courses', full ? `${esc(place)}까지 들고 가는 일곱 가지` : `${esc(place)}로 건너갈 때 많이 고르는 셋`,
     `<ul class="dishes">\n${list}\n</ul>
-     <p class="sect-x">${esc(at(h, SEC.courseTail, 2))} ${at(h, SEC.courseLink, 5)}</p>`,
+     <p class="sect-x">${tail}</p>`,
     esc(at(h, SEC.courseSub, 1)), num);
 }
 
 /* ── 접수 흐름 ────────────────────────────────────────────────── */
+export function stepSet(seedKey) {
+  return at(hash(seedKey, 'st'), STEP_SETS);
+}
 export function stepList(seedKey, num = '04') {
   const h = hash(seedKey, 'st');
   const steps = at(h, STEP_SETS);
@@ -91,6 +106,32 @@ export function longtail(pool, seedKey, n, label, heading, sub, num) {
     return `<li><a href="${p.href}">${esc(tpl(p.label))}</a></li>`;
   }).join('\n');
   return sect('longtail', label, heading, `<ul class="links">\n${items}\n</ul>`, sub || esc(at(h, SEC.ltSub, 6)), num);
+}
+
+/* ── 롱테일 주제 묶음 ──────────────────────────────────────────
+   ★★'다른 지역' 한 덩어리로만 링크를 걸면 코스 이름·값 같은 말로 들어오는 길이
+     없다. 주제별로 갈라 묶고 묶음마다 앵커 틀을 달리 둔다. */
+export function topicLinks(groups, seedKey, num, heading, sub) {
+  const h = hash(seedKey, 'tp');
+  const body = groups.filter((g) => g.items && g.items.length).map((g, gi) => {
+    const picked = (g.pick ? shuffle(g.items, hash(seedKey, 'tp', gi)) : g.items).slice(0, g.pick || g.items.length);
+    const li = picked.map((p) => {
+      const base = p.labels ? p.labels[parseInt(hash(seedKey, p.href).substr(0, 3), 16) % p.labels.length] : p.label;
+      const tpl = g.anchor ? g.anchor[parseInt(hash(seedKey, g.label, base).substr(0, 3), 16) % g.anchor.length] : null;
+      return `<li><a href="${p.href}">${esc(tpl ? tpl(base) : base)}</a></li>`;
+    }).join('\n');
+    return `<div class="topic">
+      <p class="topic-h">${esc(g.label)}</p>
+      <ul class="links">\n${li}\n</ul>
+    </div>`;
+  }).join('\n');
+  return sect('topic', 'ways in', heading, `<div class="topics">${body}</div>`,
+    sub || esc(at(h, SEC.ltSub, 6)), num);
+}
+
+/** 코스 묶음 — 시도별 코스 쪽으로 가는 롱테일. 동 쪽에서 여기로 처음 길이 난다. */
+export function courseTopic(sd, courses) {
+  return courses.map((c) => ({ label: `${sd.name} ${c.ko}`, href: `/${sd.slug}/course/${c.slug}/` }));
 }
 
 /* ── 한 다리로 이어진 칸 ───────────────────────────────────────
@@ -178,4 +219,23 @@ export function siteLinks(ctx, seedKey) {
       ${spots.map((x) => `<li><a href="/${x.r.slug}/${x.g.slug}/${x.s.slug}/">${esc(x.g.name)} ${esc(x.s.name)}</a></li>`).join('\n')}
     </ul>`,
     '시도에서 시군구로 내려가고 수도권과 부산에만 동이 한 겹 더 붙습니다. 읍·면과 그 밖 지역의 동은 이름만 목록에 있습니다.');
+}
+
+/** 문서·글 쪽에 다는 주제 묶음. 지역 목록 대신 쓰는 말로 갈라 건다. */
+export function docTopics(ctx, seedKey, num, heading, sub) {
+  const { regions, courses } = ctx;
+  const courseAll = courses.map((c) => ({ label: c.ko, href: `/course/${c.slug}/` }));
+  const sidoCourse = [];
+  for (const r of regions) for (const c of courses) sidoCourse.push({ label: `${r.name} ${c.ko}`, href: `/${r.slug}/course/${c.slug}/` });
+  const guList = [];
+  for (const r of regions) for (const g of r.gu) guList.push({ label: `${r.name} ${g.name}`, href: `/${r.slug}/${g.slug}/` });
+  const deep = [];
+  for (const r of regions) if (r.main) for (const g of r.gu) for (const s of g.spots) deep.push({ label: `${g.name} ${s.name}`, href: `/${r.slug}/${g.slug}/${s.slug}/` });
+  return topicLinks([
+    { label: '코스 이름으로', items: courseAll, anchor: COURSE_ANCHOR },
+    { label: '지역 + 코스로', items: sidoCourse, pick: 12, anchor: COURSE_ANCHOR },
+    { label: '시군구로', items: guList, pick: 14, anchor: ANCHOR },
+    { label: '동 이름으로 바로', items: deep, pick: 14, anchor: ANCHOR },
+    { label: '먼저 읽을 것', items: DOC_LINKS },
+  ], seedKey, num, heading, sub);
 }

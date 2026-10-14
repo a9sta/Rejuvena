@@ -86,6 +86,7 @@ main{max-width:var(--w);margin:0 auto;padding:22px 20px 64px}
 .sect+.sect{border-top:1px solid var(--line);padding-top:30px}
 .sect-h{margin:0 0 18px}
 .sect-no{display:block;margin:0 0 6px;font-family:var(--mono);font-size:10px;letter-spacing:.24em;color:var(--clay);text-transform:uppercase}
+.sect-no::before{content:attr(data-eyebrow)}
 .sect h2{margin:0;font-size:20px;font-weight:800;letter-spacing:-.03em;line-height:1.36;display:inline-block;
   border-bottom:4px solid var(--accSoft);padding-bottom:3px}
 @media (min-width:720px){.sect h2{font-size:23px}}
@@ -191,6 +192,31 @@ main{max-width:var(--w);margin:0 auto;padding:22px 20px 64px}
 .halves a:hover{color:var(--accDk);text-decoration:none}
 .halves b{font-size:15.5px;font-weight:700}
 .halves span{font-size:11px;color:var(--dim);font-family:var(--mono)}
+
+/* ── 다리 무리(지역 고르기) ────────────────────────
+   ★두 칸짜리 이름 목록을 쓰지 않는다. 쪽을 둔 칸이 많을수록 글자가 커지는
+     무리로 흩어 놓는다. 품이 넓은 지역이 한눈에 커 보인다. */
+.swarm{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 20px}
+.swarm a{display:inline-flex;align-items:baseline;gap:7px;color:var(--ink);padding:4px 0;
+  border-bottom:3px solid transparent;line-height:1.5}
+.swarm a:hover{text-decoration:none;border-bottom-color:var(--acc);color:var(--accDk)}
+.swarm b{font-weight:800;letter-spacing:-.035em}
+.swarm small{font-family:var(--mono);font-size:11px;color:var(--dim);font-weight:400}
+.swarm .lv1 b{font-size:30px}
+.swarm .lv2 b{font-size:25px}
+.swarm .lv3 b{font-size:21px}
+.swarm .lv4 b{font-size:18px}
+.swarm .lv5 b{font-size:16px;color:var(--dim)}
+.swarm .lv5 a:hover b{color:var(--accDk)}
+.swarm li.thin a{border-bottom-color:transparent}
+.swarm li.thin b{font-weight:600}
+.swarm-key{margin:20px 0 0;font-size:13px;color:var(--dim);border-top:1px solid var(--line);padding-top:14px}
+
+/* ── 주제 묶음 링크 ────────────────────────────────── */
+.topics{display:grid;gap:24px}
+@media (min-width:720px){.topics{grid-template-columns:1fr 1fr}}
+.topic-h{margin:0 0 11px;font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--clay)}
+.topic-h::after{content:"";display:block;width:34px;height:3px;background:var(--accSoft);margin-top:6px}
 
 /* ── 글 ────────────────────────────────────────────── */
 .read{max-width:45rem;font-size:17px}
