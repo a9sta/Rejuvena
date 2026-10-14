@@ -73,7 +73,7 @@ export const SPOT_LEAD_A = [
 /* ── 동 쪽 둘째 문단 — 구 안에서 견주기 ───────────────────── */
 export const SPOT_LEAD_B = [
   (c) => `${c.gu}에서 이웃이 가장 많은 칸은 ${c.hubSpot}(${c.hubDeg}개)이고 가장 적은 칸은 ${c.edgeSpot}(${c.edgeDeg}개)입니다.`,
-  (c) => `${c.gu}${josa(c.gu, '은/는')} 한쪽 끝에서 반대쪽까지 ${c.guDiameter}다리이고, 그 안에 길목이 ${c.guCut}칸 있습니다.`,
+  (c) => `${c.gu}${josa(c.gu, '은/는')} 한쪽 끝에서 반대쪽까지 ${c.guDiameter}다리입니다. ${c.guCut ? `길목에 걸리는 칸이 ${c.guCut}개 있습니다.` : '길목에 걸리는 칸은 없습니다.'}`,
   (c) => `${c.gu} 안 칸들은 평균 ${c.guAvgDeg}개씩 서로 맞대고 있습니다. ${c.nm}${josa(c.nm, '은/는')} ${c.inDeg}개입니다.`,
   (c) => `두 다리 품이 가장 넓은 칸은 ${c.wideSpot}로 ${c.wideN}개입니다. ${c.nm}${josa(c.nm, '은/는')} ${c.step2}개입니다.`,
   (c) => `${c.crossNote} ${c.nm}의 땅은 ${c.area}입니다.`,
@@ -101,7 +101,7 @@ export const GU_LEAD = [
     list: () => `${g.name}에는 행정동이 ${g.dongCount}칸입니다. 층을 시군구에서 멈췄으니 동 이름은 아래 목록에서 찾아 주십시오.`,
     rural: () => `${g.name}의 행정동 ${g.dongCount}칸은 모두 읍이거나 면입니다. 쪽을 가진 동이 없어 이 한 장에서 ${g.ruralCount}칸을 받습니다.`,
   }[g.mode]()),
-  (g) => `${g.sido} ${g.name}${josa(g.name, '은/는')} 한쪽 끝에서 반대쪽까지 ${g.diameter}다리입니다. 그 안에 길목이 ${g.cutCount}칸 있습니다.`,
+  (g) => `${g.sido} ${g.name}${josa(g.name, '은/는')} 한쪽 끝에서 반대쪽까지 ${g.diameter}다리입니다. ${g.cutCount ? `그 안에 길목이 ${g.cutCount}칸 있습니다.` : '길목에 걸리는 칸은 하나도 없습니다.'}`,
   (g) => ({
     spot: () => `${g.name}에서 이웃을 가장 많이 맞댄 칸은 ${g.hubSpot}이고 가장 적은 칸은 ${g.edgeSpot}입니다. ${g.hubDeg}개와 ${g.edgeDeg}개로 갈립니다.`,
     list: () => `${g.name}의 행정동 ${g.dongCount}칸 전부가 방문 범위입니다. 칸마다 쪽을 따로 두지 않았을 뿐입니다.`,
@@ -112,7 +112,7 @@ export const GU_LEAD = [
     list: () => `${g.name}의 땅은 ${g.area}입니다. 전화에서 동 이름만 주시면 접수가 끝납니다.`,
     rural: () => `${g.name} 안쪽 칸들은 평균 ${g.avgDeg}개씩 맞대고 있습니다. 어느 읍·면인지를 말씀해 주셔야 들어오는 길이 정해집니다.`,
   }[g.mode]()),
-  (g) => `길목은 그 칸을 지나지 않으면 건너갈 수 없는 자리입니다. ${g.name}에는 ${g.cutCount}칸이 거기에 해당합니다.`,
+  (g) => `길목은 그 칸을 지나지 않으면 건너갈 수 없는 자리입니다. ${g.name}에는 ${g.cutCount ? `${g.cutCount}칸이 거기에 해당합니다` : '그런 칸이 없어 어디로든 돌아갈 길이 남습니다'}.`,
   (g) => (g.ruralCount
     ? `${g.name}의 행정동 ${g.dongCount}칸 가운데 ${g.ruralCount}칸이 읍이나 면입니다. 둘은 쪽 없이 이름만 올려 두었습니다.`
     : `${g.name}에는 읍과 면이 없습니다. 행정동 ${g.dongCount}칸이 다 동입니다.`),

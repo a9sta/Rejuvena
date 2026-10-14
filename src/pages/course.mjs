@@ -153,7 +153,7 @@ export function sidoCoursePage(ctx, sd, c) {
       ['세기와 결', `${esc(c.pressure)} · ${esc(c.tempo)}`],
       ['오래 머무는 자리', esc(c.focus)],
       ['기름', c.oil ? '씁니다' : '안 씁니다'],
-      ['길목 합', `${sd.cutSum}칸 — 길이 한 줄로 몰리는 자리입니다`],
+      ['길목 합', sd.cutSum ? `${sd.cutSum}칸 — 길이 한 줄로 몰리는 자리입니다` : '없음 — 어디로든 돌아갈 길이 있습니다'],
       ['받는 땅', km2(sd.area)],
     ]), esc(at(h, SEC.factSub, 7)), '01');
 

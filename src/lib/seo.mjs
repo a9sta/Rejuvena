@@ -88,7 +88,7 @@ export const desc = {
     const mid = g.main && g.spotCount
       ? [
         `동 ${g.spotCount}칸에 쪽이 있고 안쪽 이웃이 칸마다 평균 ${g.avgDeg}개`,
-        `한쪽 끝에서 반대쪽까지 ${g.diameter}다리, 길목이 ${g.cutCount}칸`,
+        g.cutCount ? `한쪽 끝에서 반대쪽까지 ${g.diameter}다리, 길목이 ${g.cutCount}칸` : `한쪽 끝에서 반대쪽까지 ${g.diameter}다리이고 길목은 없습니다`,
         `이웃이 가장 많은 칸은 ${g.hubSpot}, 가장 적은 칸은 ${g.edgeSpot}`,
         `두 다리 안에 가장 넓게 닿는 칸은 ${g.wideSpot}로 ${g.wideN}개`,
       ][parseInt(h.substr(3, 3), 16) % 4]
